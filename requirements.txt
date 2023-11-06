@@ -1,3 +1,5 @@
-pytorch-lightning >= 1.0.0rc2
-torch >= 1.3.0
-torchvision >= 0.6.0
+lightning[pytorch-extra]
+pytorch >= 2.1.0
+enformer-pytorch >= 0.8.5
+pybigwig >= 0.3.22
+pandas >= 2.1.2
