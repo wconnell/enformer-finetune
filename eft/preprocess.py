@@ -35,30 +35,29 @@ def main(args) -> None:
     bw_file = pyBigWig.open("../data/ENCFF972GVB.bw")
 
     # write out segments
-    for i in ['PROMOTERS', 'training', 'validation', 'test']:
-        df = all_data[all_data['TAG']==i]
-        df['chrom'] = df['chrom'].astype(str)
-        df[['start', 'end']] = df[['start', 'end']].astype(int)
+    df = all_data[all_data['TAG']=="PROMOTERS"]
+    df['chrom'] = df['chrom'].astype(str)
+    df[['start', 'end']] = df[['start', 'end']].astype(int)
 
-        seq_values = []
-        for row in df.itertuples():
+    seq_values = []
+    for row in df.itertuples():
 
-            values = get_bw_signal(bw_file, row.chrom, row.start, row.end)
-            if np.any(np.isnan(values)):
-                continue
+        values = get_bw_signal(bw_file, row.chrom, row.start, row.end)
+        if np.any(np.isnan(values)):
+            continue
 
-            binned_values = avg_bin(values, n_bins=896)
-            row_data = {
-                'chrom': row.chrom,
-                'start': row.start,
-                'end': row.end,
-                'values': binned_values
-                }
-            seq_values.append(row_data)
+        binned_values = avg_bin(values, n_bins=896)
+        row_data = {
+            'chrom': row.chrom,
+            'start': row.start,
+            'end': row.end,
+            'values': binned_values
+            }
+        seq_values.append(row_data)
 
-        seq_values = pd.DataFrame(seq_values)
-        seq_values.to_pickle(args.outdir / f"{i}.pkl")
-        seq_values[['chrom', 'start', 'end', 'values']].to_csv(args.outdir / f"{i}.bed", sep="\t", header=False, index=False)
+    seq_values = pd.DataFrame(seq_values)
+    seq_values.to_pickle(args.outdir / f"{i}.pkl")
+    seq_values[['chrom', 'start', 'end', 'values']].to_csv(args.outdir / f"{i}.bed", sep="\t", header=False, index=False)
 
 
 
