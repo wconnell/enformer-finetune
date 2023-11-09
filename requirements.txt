@@ -1,5 +1,5 @@
 lightning[pytorch-extra]
-pytorch >= 2.1.0
+torch >= 2.1.0
 enformer-pytorch >= 0.8.5
 pybigwig >= 0.3.22
 pandas >= 2.1.2
