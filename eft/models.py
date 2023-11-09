@@ -26,23 +26,23 @@ class EnformerTX(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         seq, target = batch
-        loss = self(seq, target)
+        loss = self.forward(seq, target)
         self.log('train/loss', loss)
         return loss
 
     def validation_step(self, batch, batch_idx):
         seq, target = batch
-        loss = self(seq, target)
+        loss = self.forward(seq, target)
         self.log('valid/loss', loss)
 
     def test_step(self, batch, batch_idx):
         seq, target = batch
-        loss = self(seq, target)
+        loss = self.forward(seq, target)
         self.log('test/loss', loss)
     
     def predict_step(self, batch, batch_idx, dataloader_idx=None):
         seq, _ = batch
-        return self(seq, None)
+        return self.forward(seq, None)
     
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.hparams.learning_rate)
