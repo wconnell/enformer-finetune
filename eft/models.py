@@ -4,6 +4,7 @@ from enformer_pytorch.finetune import HeadAdapterWrapper
 from enformer_pytorch import seq_indices_to_one_hot
 import torch
 
+
 class EnformerTX(pl.LightningModule):
     def __init__(self, pretrained_state_dict=None, learning_rate=3e-4):
         super().__init__()
@@ -39,10 +40,10 @@ class EnformerTX(pl.LightningModule):
         seq, target = batch
         loss = self(seq, target)
         self.log('test/loss', loss)
-    
+
     def predict_step(self, batch, batch_idx, dataloader_idx=None):
         seq, _ = batch
         return self(seq, None)
-    
+
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.hparams.learning_rate)
