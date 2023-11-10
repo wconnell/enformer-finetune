@@ -60,7 +60,7 @@ def main() -> None:
     df['chrom'] = df['chrom'].astype(str)
     df[['start', 'end']] = df[['start', 'end']].astype(int)
 
-    df = df.iloc[:100, :]
+    total = len(df)
 
     promoters = []
     for row in tqdm(df.itertuples(), total=total):
@@ -109,7 +109,7 @@ def main() -> None:
     controls['seq_type'] = 'random'
     sequences = pd.concat((promoters, controls)).sample(frac=1)
 
-    sequences[['chrom', 'start', 'end', 'values']].to_csv(f"{outdir}/promoter_dnase.bed", sep="\t", header=False,
+    sequences[['chrom', 'start', 'end', 'values']].to_csv(f"{outdir}/promoter_dnase.csv", sep="\t", header=False,
                                                         index=False)
 
 
