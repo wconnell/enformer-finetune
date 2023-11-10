@@ -60,7 +60,7 @@ def main() -> None:
     df['chrom'] = df['chrom'].astype(str)
     df[['start', 'end']] = df[['start', 'end']].astype(int)
 
-    total = len(df)
+    df = df.iloc[:100, :]
 
     promoters = []
     for row in tqdm(df.itertuples(), total=total):
@@ -82,7 +82,7 @@ def main() -> None:
 
     chrom_sizes = get_chrom_sizes()
 
-    control = []
+    controls = []
     for i in tqdm(range(len_seq_values)):
         find_control = True
         while find_control:
@@ -100,15 +100,17 @@ def main() -> None:
                     'end': end,
                     'values': values
                 }
-                control.append(row_data)
+                controls.append(row_data)
 
     promoters = pd.DataFrame(promoters)
-    control = pd.DataFrame(control)
+    controls = pd.DataFrame(controls)
 
-    promoters.to_pickle(f"{outdir}/promoter_dnase_vals.pkl")
-    promoters[['chrom', 'start', 'end']].to_csv(f"{outdir}/promoter_dnase.bed", sep="\t", header=False, index=False)
-    control.to_pickle(f"{outdir}/control_dnase_vals.pkl")
-    control[['chrom', 'start', 'end', 'values']].to_csv(f"{outdir}/control_dnase.bed", sep="\t", header=False, index=False)
+    promoters['seq_type'] = 'promoter'
+    controls['seq_type'] = 'random'
+    sequences = pd.concat((promoters, controls)).sample(frac=1)
+
+    sequences[['chrom', 'start', 'end', 'values']].to_csv(f"{outdir}/promoter_dnase.bed", sep="\t", header=False,
+                                                        index=False)
 
 
 if __name__ == "__main__":
