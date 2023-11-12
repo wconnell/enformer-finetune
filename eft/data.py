@@ -1,4 +1,5 @@
 import lightning.pytorch as pl
+import pandas as pd
 from torch.utils.data import random_split, DataLoader
 from enformer_pytorch import GenomeIntervalDataset
 from pathlib import Path
@@ -26,7 +27,11 @@ class EnformerTXDataModule(pl.LightningDataModule):
         
 
     def prepare_data(self):
-        pass
+        # TODO: Implement this
+        full_data = pd.read_csv('../sequences/promoter_dnase.bed', sep='\t', header=None)
+        full_data.columns = ['chr', 'start', 'end', 'target']
+        return 0
+
 
     def setup(self, stage: str):
         # Assign train/val datasets for use in dataloaders
