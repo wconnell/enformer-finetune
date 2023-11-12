@@ -44,7 +44,7 @@ model:
   pretrained_state_dict: null
   learning_rate: 3e-4
 data:
-  data_dir: tests/data
+  data_dir: ../sequences
   batch_size: 1
   num_workers: 0
 ckpt_path: null
