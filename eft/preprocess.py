@@ -109,8 +109,8 @@ def main() -> None:
     controls['seq_type'] = 'random'
     sequences = pd.concat((promoters, controls)).sample(frac=1)
 
-    sequences[['chrom', 'start', 'end', 'values']].to_csv(f"{outdir}/promoter_dnase.csv", sep="\t", header=False,
-                                                        index=False)
+    sequences[['chrom', 'start', 'end', 'seq_type', 'values']].to_csv(f"{outdir}/promoter_dnase.bed", sep="\t",
+                                                                      header=False, index=False)
 
 
 if __name__ == "__main__":
