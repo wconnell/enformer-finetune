@@ -60,7 +60,7 @@ def main() -> None:
     df['chrom'] = df['chrom'].astype(str)
     df[['start', 'end']] = df[['start', 'end']].astype(int)
 
-    df = df.sample(n=50, random_state=42)
+    # df = df.sample(n=50, random_state=42)
     total = len(df)
 
     promoters = []

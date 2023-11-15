@@ -6,6 +6,7 @@ from pathlib import Path
 import torch
 import ast
 import eft
+from sklearn.model_selection import train_test_split
 
 
 class CustomGenomeIntervalDataset(GenomeIntervalDataset):
@@ -22,45 +23,43 @@ class CustomGenomeIntervalDataset(GenomeIntervalDataset):
 
 
 class EnformerTXDataModule(pl.LightningDataModule):
-    def __init__(self, data_dir: Path = None, batch_size: int = 32, num_workers: int = 4, train_test_split: float = 0.8):
+    def __init__(self, data_dir: Path = None, batch_size: int = 32, num_workers: int = 4, dev = False):
         super().__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.train_test_split = train_test_split
+        self.dev = dev
         self.save_hyperparameters()
         self.fasta_file = str(Path(eft.__file__).parents[1].joinpath('data/hg38.fa'))
 
     def prepare_data(self):
-        full_data = pd.read_csv(self.data_dir.joinpath('promoter_dnase.bed'), sep='\t', header=None)
-        full_data.columns = ['chr', 'start', 'end', 'seq_type', 'target']
+        train_path = self.data_dir.joinpath('train.bed')
+        val_path = self.data_dir.joinpath('val.bed')
+        if not train_path.exists() and not val_path.exists():
+            self.split_data()
 
-        promoter_data = full_data[full_data['seq_type'] == 'promoter']
-        control_data = full_data[full_data['seq_type'] == 'random']
-
-        train_size = int(len(promoter_data) * self.train_test_split)
-
-        promoter_train = promoter_data[:train_size]
-        promoter_val = promoter_data[train_size:]
-        control_train = control_data[:train_size]
-        control_val = control_data[train_size:]
-
-        train = pd.concat([promoter_train, control_train])
-        val = pd.concat([promoter_val, control_val])
+    def split_data(self):
+        df = pd.read_csv(self.data_dir.joinpath('promoter_dnase.bed'), sep='\t', header=None)
+        df.columns = ['chr', 'start', 'end', 'seq_type', 'target']
+        train, val = train_test_split(df, test_size=0.2, random_state=42)
         train.to_csv(self.data_dir.joinpath('train.bed'), sep='\t', header=False, index=False)
         val.to_csv(self.data_dir.joinpath('val.bed'), sep='\t', header=False, index=False)
+        train.sample(n=2000).to_csv(self.data_dir.joinpath('train_dev.bed'), sep='\t', header=False, index=False)
+        val.sample(n=400).to_csv(self.data_dir.joinpath('val_dev.bed'), sep='\t', header=False, index=False)
 
     def setup(self, stage: str):
         # Assign train/val datasets for use in dataloaders
         if stage == "fit":
+            train_file = 'train_dev.bed' if self.dev else 'train.bed'
+            val_file = 'val_dev.bed' if self.dev else 'val.bed'
             self.train = CustomGenomeIntervalDataset(
-                bed_file=self.data_dir.joinpath('train.bed'),
+                bed_file=self.data_dir / train_file,
                 fasta_file=self.fasta_file,
                 return_seq_indices=True,
                 context_length=196_608,
             )
             self.val = CustomGenomeIntervalDataset(
-                bed_file=self.data_dir.joinpath('val.bed'),
+                bed_file=self.data_dir / val_file,
                 fasta_file=self.fasta_file,
                 return_seq_indices=True,
                 context_length=196_608,
