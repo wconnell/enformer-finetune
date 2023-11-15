@@ -45,7 +45,7 @@ def random_region(chrom_sizes, bw_file):
 
 
 def main() -> None:
-    outdir = Path("sequences")
+    outdir = Path("../data/sequences")
     if not outdir.exists():
         outdir.mkdir(parents=True, exist_ok=True)
 
@@ -60,6 +60,7 @@ def main() -> None:
     df['chrom'] = df['chrom'].astype(str)
     df[['start', 'end']] = df[['start', 'end']].astype(int)
 
+    df = df.sample(n=50, random_state=42)
     total = len(df)
 
     promoters = []
@@ -98,7 +99,7 @@ def main() -> None:
                     'chrom': chrom,
                     'start': start,
                     'end': end,
-                    'values': values
+                    'values': binned_values
                 }
                 controls.append(row_data)
 
