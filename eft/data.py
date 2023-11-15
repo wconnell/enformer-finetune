@@ -71,12 +71,24 @@ class EnformerTXDataModule(pl.LightningDataModule):
             raise NotImplementedError("Predict data not implemented")
 
     def train_dataloader(self):
-        return DataLoader(self.train, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers,
-                          pin_memory=True)
+        train_loader = DataLoader(
+            self.train,
+            batch_size=self.batch_size,
+            shuffle=True,
+            num_workers=self.num_workers,
+            pin_memory=True
+        )
+        return train_loader
 
     def val_dataloader(self):
-        return DataLoader(self.val, batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers,
-                          pin_memory=True)
+        val_loader = DataLoader(
+            self.val,
+            batch_size=self.batch_size,
+            shuffle=False,
+            num_workers=self.num_workers,
+            pin_memory=True
+        )
+        return val_loader
 
     def test_dataloader(self):
         raise NotImplementedError("Test data not implemented")
