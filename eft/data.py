@@ -9,6 +9,9 @@ import eft
 
 
 class CustomGenomeIntervalDataset(GenomeIntervalDataset):
+    def __len__(self):
+        return len(self.df) - 1
+    
     def __getitem__(self, ind):
         interval = self.df.row(ind)
         chr_name, start, end, seq_type, target = (interval[0], interval[1], interval[2], interval[3], interval[4])
@@ -29,7 +32,7 @@ class EnformerTXDataModule(pl.LightningDataModule):
         self.fasta_file = str(Path(eft.__file__).parents[1].joinpath('data/hg38.fa'))
 
     def prepare_data(self):
-        full_data = pd.read_csv('eft/sequences/promoter_dnase.bed', sep='\t', header=None)
+        full_data = pd.read_csv('../data/sequences/promoter_dnase.bed', sep='\t', header=None)
         full_data.columns = ['chr', 'start', 'end', 'seq_type', 'target']
 
         promoter_data = full_data[full_data['seq_type'] == 'promoter']
@@ -76,7 +79,8 @@ class EnformerTXDataModule(pl.LightningDataModule):
             batch_size=self.batch_size,
             shuffle=True,
             num_workers=self.num_workers,
-            pin_memory=True
+            pin_memory=True,
+            drop_last=True
         )
         return train_loader
 
@@ -86,7 +90,8 @@ class EnformerTXDataModule(pl.LightningDataModule):
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
-            pin_memory=True
+            pin_memory=True,
+            drop_last=True
         )
         return val_loader
 
