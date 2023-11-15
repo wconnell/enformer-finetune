@@ -19,31 +19,25 @@ class EnformerTX(pl.LightningModule):
         self.save_hyperparameters()
 
     def forward(self, sequence, target):
-        if self.device.type != 'cpu':
-            sequence = sequence.to(dtype=torch.long)
-            target = target.to(dtype=torch.float32)
-            sequence = seq_indices_to_one_hot(sequence)
+        # if self.device.type != 'cpu':
+        #     sequence = sequence.to(dtype=torch.long)
+        #     target = target.to(dtype=torch.float32)
+        #     sequence = seq_indices_to_one_hot(sequence)
         return self.model(sequence, target=target)
 
     def training_step(self, batch, batch_idx):
         seq, target = batch
-        seq = seq.squeeze()
-        target = target.squeeze()
         loss = self(seq, target)
         self.log('train/loss', loss)
         return loss
 
     def validation_step(self, batch, batch_idx):
         seq, target = batch
-        seq = seq.squeeze()
-        target = target.squeeze()
         loss = self(seq, target)
         self.log('valid/loss', loss)
 
     def test_step(self, batch, batch_idx):
         seq, target = batch
-        seq = seq.squeeze()
-        target = target.squeeze()
         loss = self(seq, target)
         self.log('test/loss', loss)
 
