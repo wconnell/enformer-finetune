@@ -18,12 +18,8 @@ class EnformerTX(pl.LightningModule):
             self.model.load_state_dict(pretrained_state_dict, strict=False)
         self.save_hyperparameters()
 
-        if torch.cuda.get_device_capability(self.device.index())[0] >= 7:
-            print("Tensor Cores are available.")
-            torch.set_float32_matmul_precision('medium')
-
     def forward(self, sequence, target):
-        if self.device.type is not 'cpu':
+        if self.device.type != 'cpu':
             sequence = sequence.to(dtype=torch.long)
             target = target.to(dtype=torch.float32)
             sequence = seq_indices_to_one_hot(sequence)
@@ -31,17 +27,23 @@ class EnformerTX(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         seq, target = batch
+        seq = seq.squeeze()
+        target = target.squeeze()
         loss = self(seq, target)
         self.log('train/loss', loss)
         return loss
 
     def validation_step(self, batch, batch_idx):
         seq, target = batch
+        seq = seq.squeeze()
+        target = target.squeeze()
         loss = self(seq, target)
         self.log('valid/loss', loss)
 
     def test_step(self, batch, batch_idx):
         seq, target = batch
+        seq = seq.squeeze()
+        target = target.squeeze()
         loss = self(seq, target)
         self.log('test/loss', loss)
 
