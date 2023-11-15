@@ -32,7 +32,7 @@ class EnformerTXDataModule(pl.LightningDataModule):
         self.fasta_file = str(Path(eft.__file__).parents[1].joinpath('data/hg38.fa'))
 
     def prepare_data(self):
-        full_data = pd.read_csv('../data/sequences/promoter_dnase.bed', sep='\t', header=None)
+        full_data = pd.read_csv(self.data_dir.joinpath('promoter_dnase.bed'), sep='\t', header=None)
         full_data.columns = ['chr', 'start', 'end', 'seq_type', 'target']
 
         promoter_data = full_data[full_data['seq_type'] == 'promoter']
