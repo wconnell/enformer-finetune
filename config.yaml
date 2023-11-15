@@ -3,9 +3,9 @@ seed_everything: true
 trainer:
   accelerator: auto
   strategy: auto
-  devices: auto
+  devices: 1,
   num_nodes: 1
-  precision: 32
+  precision: 16
   logger: null
   callbacks: null
   fast_dev_run: false
@@ -44,7 +44,7 @@ model:
   pretrained_state_dict: null
   learning_rate: 3e-4
 data:
-  data_dir: eft/sequences
-  batch_size: 1
+  data_dir: data/sequences
+  batch_size: 2
   num_workers: 0
 ckpt_path: null
