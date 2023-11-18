@@ -34,7 +34,7 @@ class EnformerTX(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         seq, target = batch
         loss = self(seq, target)
-        self.log('valid/loss', loss)
+        self.log('val/loss', loss)
 
     def test_step(self, batch, batch_idx):
         seq, target = batch

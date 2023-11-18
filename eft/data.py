@@ -44,8 +44,8 @@ class EnformerTXDataModule(pl.LightningDataModule):
         train, val = train_test_split(df, test_size=0.2, random_state=42)
         train.to_csv(self.data_dir.joinpath('train.bed'), sep='\t', header=False, index=False)
         val.to_csv(self.data_dir.joinpath('val.bed'), sep='\t', header=False, index=False)
-        train.sample(n=2000).to_csv(self.data_dir.joinpath('train_dev.bed'), sep='\t', header=False, index=False)
-        val.sample(n=400).to_csv(self.data_dir.joinpath('val_dev.bed'), sep='\t', header=False, index=False)
+        train.sample(n=500).to_csv(self.data_dir.joinpath('train_dev.bed'), sep='\t', header=False, index=False)
+        val.sample(n=50).to_csv(self.data_dir.joinpath('val_dev.bed'), sep='\t', header=False, index=False)
 
     def setup(self, stage: str):
         # Assign train/val datasets for use in dataloaders
