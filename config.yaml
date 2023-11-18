@@ -2,18 +2,26 @@
 seed_everything: true
 trainer:
   accelerator: auto
-  strategy: ddp_find_unused_parameters_true
-  devices: 1,2
+  strategy: auto #ddp_find_unused_parameters_true
+  devices: 1,
   num_nodes: 1
   precision: 16-mixed
   logger:
     class_path: lightning.pytorch.loggers.TensorBoardLogger
     init_args:
       save_dir: lightning_logs
-      name: dev
-  callbacks: null
+      name: 90-10
+  callbacks:
+    class_path: lightning.pytorch.callbacks.ModelCheckpoint
+    init_args:
+      save_top_k: -1
+      filename: epoch={epoch}-steps={steps}-train_loss={train/loss:.2f}
+      auto_insert_metric_name: False
+      monitor: train/loss
+      train_time_interval: 0:60:0
+      enable_version_counter: True
   fast_dev_run: false
-  max_epochs: 30
+  max_epochs: 50
   min_epochs: null
   max_steps: -1
   min_steps: null
@@ -26,12 +34,12 @@ trainer:
   val_check_interval: null
   check_val_every_n_epoch: 1
   num_sanity_val_steps: null
-  log_every_n_steps: null
+  log_every_n_steps: 1000
   enable_checkpointing: null
   enable_progress_bar: null
   enable_model_summary: null
-  accumulate_grad_batches: 1
-  gradient_clip_val: null
+  accumulate_grad_batches: 32
+  gradient_clip_val: 0.5
   gradient_clip_algorithm: null
   deterministic: null
   benchmark: null
@@ -51,5 +59,5 @@ data:
   data_dir: data/sequences
   batch_size: 2
   num_workers: 0
-  dev: True
+  dev: false
 ckpt_path: null
