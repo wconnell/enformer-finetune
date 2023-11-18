@@ -46,6 +46,10 @@ bash download-data.sh
 python main.py fit --config config.yaml
 ```
 
+### Notes
+DDP OOM issues on 24GB machine set:
+`export PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128`
+
 <!-- 
 ### Citation   
 ```
