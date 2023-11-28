@@ -5,7 +5,7 @@ trainer:
   strategy: auto #ddp_find_unused_parameters_true
   devices: 1,
   num_nodes: 1
-  precision: 16-mixed
+  precision: 32
   logger:
     class_path: lightning.pytorch.loggers.TensorBoardLogger
     init_args:
@@ -18,10 +18,11 @@ trainer:
       filename: epoch={epoch}-steps={steps}-train_loss={train/loss:.2f}
       auto_insert_metric_name: False
       monitor: train/loss
-      train_time_interval: 0:60:0
+      train_time_interval: null #0:60:0
+      every_n_epochs: null
       enable_version_counter: True
   fast_dev_run: false
-  max_epochs: 50
+  max_epochs: 2
   min_epochs: null
   max_steps: -1
   min_steps: null
@@ -34,14 +35,14 @@ trainer:
   val_check_interval: null
   check_val_every_n_epoch: 1
   num_sanity_val_steps: null
-  log_every_n_steps: 1000
+  log_every_n_steps: 50
   enable_checkpointing: null
   enable_progress_bar: null
   enable_model_summary: null
-  accumulate_grad_batches: 32
+  accumulate_grad_batches: 64
   gradient_clip_val: 0.5
   gradient_clip_algorithm: null
-  deterministic: null
+  deterministic: true
   benchmark: null
   inference_mode: true
   use_distributed_sampler: true
@@ -54,7 +55,7 @@ trainer:
   default_root_dir: null
 model:
   pretrained_state_dict: null
-  learning_rate: 3e-4
+  learning_rate: 1e-5
 data:
   data_dir: data/sequences
   batch_size: 2
