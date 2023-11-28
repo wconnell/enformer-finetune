@@ -79,7 +79,7 @@ def main() -> None:
         }
         promoters.append(row_data)
 
-    len_seq_values = len(promoters)
+    len_seq_values = int(round(len(promoters) * 0.1))  # 90/10 split positive/negative samples
 
     chrom_sizes = get_chrom_sizes()
 
@@ -112,6 +112,40 @@ def main() -> None:
 
     sequences[['chrom', 'start', 'end', 'seq_type', 'values']].to_csv(f"{outdir}/promoter_dnase.bed", sep="\t",
                                                                       header=False, index=False)
+
+
+def balance_dataset(dataset, label_column, positive_fraction):
+    """
+    Balances the dataset based on the specified fraction of positive cases.
+
+    Parameters:
+    - dataset (pd.DataFrame): The dataset to be balanced.
+    - label_column (int or str): The column in the dataset containing the class labels.
+    - positive_fraction (float): The desired fraction of positive cases in the dataset.
+
+    Returns:
+    - pd.DataFrame: A balanced dataset.
+
+    Example:
+        balanced_train = balance_dataset(train, 3, 0.9)
+        balanced_val = balance_dataset(val, 3, 0.9)
+    """
+
+    # Count the number of positive instances
+    pos_count = dataset[label_column].value_counts().loc['promoter']
+
+    # Calculate the number of negative instances needed for the desired balance
+    total_count = pos_count / positive_fraction
+    neg_count = int(total_count - pos_count)
+
+    # Extract positive and negative samples
+    positives = dataset[dataset[label_column] == 'promoter']
+    negatives = dataset[dataset[label_column] != 'promoter'].sample(n=neg_count)
+
+    # Concatenate and shuffle the dataset
+    balanced_dataset = pd.concat([positives, negatives]).sample(frac=1).reset_index(drop=True)
+
+    return balanced_dataset
 
 
 if __name__ == "__main__":
