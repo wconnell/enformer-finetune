@@ -75,6 +75,22 @@ class EnformerTXDataModule(pl.LightningDataModule):
         if stage == "predict":
             raise NotImplementedError("Predict data not implemented")
 
+    @staticmethod
+    def custom_collate_fn(batch):
+        sequences = [item[0] for item in batch]
+        targets = [item[1] for item in batch]
+        fixed_len = 196_608
+        sequences = [
+            torch.nn.functional.pad(seq, (0, fixed_len - seq.shape[0])) if seq.shape[0] < fixed_len else seq[:fixed_len]
+            for seq in sequences]
+        sequences = torch.stack(sequences)
+
+        targets = [torch.nn.functional.pad(target, (0, fixed_len - target.shape[0])) if target.shape[0] < fixed_len
+                   else target[:fixed_len] for target in targets]
+        targets = torch.stack(targets)
+
+        return sequences, targets
+
     def train_dataloader(self):
         train_loader = DataLoader(
             self.train,
@@ -82,7 +98,8 @@ class EnformerTXDataModule(pl.LightningDataModule):
             shuffle=True,
             num_workers=self.num_workers,
             pin_memory=True,
-            drop_last=True
+            drop_last=True,
+            collate_fn=self.custom_collate_fn
         )
         return train_loader
 
@@ -93,7 +110,8 @@ class EnformerTXDataModule(pl.LightningDataModule):
             shuffle=False,
             num_workers=self.num_workers,
             pin_memory=True,
-            drop_last=True
+            drop_last=True,
+            collate_fn=self.custom_collate_fn
         )
         return val_loader
 
