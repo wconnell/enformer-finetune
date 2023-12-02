@@ -19,7 +19,10 @@ class CustomGenomeIntervalDataset(GenomeIntervalDataset):
         chr_name = self.chr_bed_to_fasta_map.get(chr_name, chr_name)
         target = ast.literal_eval(target)
         target = torch.tensor(target)
-        return self.fasta(chr_name, start, end, return_augs=self.return_augs), target
+
+        sequence = self.fasta(chr_name, start, end, return_augs=self.return_augs)
+
+        return sequence, target
 
 
 class EnformerTXDataModule(pl.LightningDataModule):
