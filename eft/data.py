@@ -35,6 +35,13 @@ class EnformerTXDataModule(pl.LightningDataModule):
         self.save_hyperparameters()
         self.fasta_file = str(Path(eft.__file__).parents[1].joinpath('data/hg38.fa'))
 
+    @staticmethod
+    def on_epoch_end():
+        print('Clearing memory...')
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
     def prepare_data(self):
         train_path = self.data_dir.joinpath('train.bed')
         val_path = self.data_dir.joinpath('val.bed')
@@ -120,3 +127,12 @@ class EnformerTXDataModule(pl.LightningDataModule):
 
     def predict_dataloader(self):
         raise NotImplementedError("Predict data not implemented")
+
+
+class MemoryLoggingCallback(pl.Callback):
+    @staticmethod
+    def on_train_batch_end(trainer, pl_module, outputs, batch, batch_idx):
+        memory_allocated = torch.cuda.memory_allocated()
+        memory_cached = torch.cuda.memory_cached()
+        trainer.logger.experiment.add_scalar("Memory/Allocated", memory_allocated, global_step=trainer.global_step)
+        trainer.logger.experiment.add_scalar("Memory/Cached", memory_cached, global_step=trainer.global_step)
