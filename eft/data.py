@@ -22,7 +22,19 @@ class CustomGenomeIntervalDataset(GenomeIntervalDataset):
 
         sequence = self.fasta(chr_name, start, end, return_augs=self.return_augs)
 
+        print(f"Sequence dtype: {self.check_tensor_dtype(sequence)}")
+        print(f"Target dtype: {self.check_tensor_dtype(target)}")
+
         return sequence, target
+
+    @staticmethod
+    def check_tensor_dtype(tensor):
+        if tensor.dtype == torch.float16:
+            return "fp16"
+        elif tensor.dtype == torch.bfloat16:
+            return "bf16"
+        else:
+            return str(tensor.dtype)
 
 
 class EnformerTXDataModule(pl.LightningDataModule):
