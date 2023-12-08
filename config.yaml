@@ -5,7 +5,7 @@ trainer:
   strategy: ddp_find_unused_parameters_true
   devices: 4
   num_nodes: 1
-  precision: 16-mixed  # check if fp16 or bf16
+  precision: 16-mixed
   logger:
     class_path: lightning.pytorch.loggers.TensorBoardLogger
     init_args:
