@@ -14,10 +14,10 @@ trainer:
   callbacks:
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
-        save_top_k: 1
-        filename: epoch={epoch}-steps={steps}-val_loss={val/loss:.2f}
+        save_top_k: -1
+        filename: epoch={epoch}-steps={steps}-train_loss={val/loss:.2f}
         auto_insert_metric_name: false
-        monitor: val/loss
+        monitor: train/loss
         mode: min
         train_time_interval: null #0:60:0
         every_n_epochs: 1
