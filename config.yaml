@@ -1,30 +1,31 @@
-# TODO: Check sequence length the model uses. Decrease if too large
 # lightning.pytorch==2.1.0
 seed_everything: true
 trainer:
   accelerator: auto
   strategy: ddp_find_unused_parameters_true
-  devices: 3
+  devices: 4
   num_nodes: 1
-  precision: 16-mixed
+  precision: 16-mixed  # check if fp16 or bf16
   logger:
     class_path: lightning.pytorch.loggers.TensorBoardLogger
     init_args:
       save_dir: lightning_logs
       name: 90-10
   callbacks:
-    class_path: lightning.pytorch.callbacks.ModelCheckpoint
-    init_args:
-      save_top_k: 1
-      filename: epoch={epoch}-steps={steps}-val_loss={val/loss:.2f}
-      auto_insert_metric_name: false
-      monitor: val/loss
-      mode: min
-      train_time_interval: null #0:60:0
-      every_n_epochs: 1
-      enable_version_counter: true
+    - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+      init_args:
+        save_top_k: 1
+        filename: epoch={epoch}-steps={steps}-val_loss={val/loss:.2f}
+        auto_insert_metric_name: false
+        monitor: val/loss
+        mode: min
+        train_time_interval: null #0:60:0
+        every_n_epochs: 1
+        enable_version_counter: true
+    - class_path: eft.data.MemoryLoggingCallback
+      init_args: {}
   fast_dev_run: false
-  max_epochs: 2
+  max_epochs: 30
   min_epochs: null
   max_steps: -1
   min_steps: null
@@ -51,7 +52,7 @@ trainer:
   profiler: null
   detect_anomaly: false
   barebones: false
-  plugins: null
+  plugins: ddp_sharded
   sync_batchnorm: false
   reload_dataloaders_every_n_epochs: 0
   default_root_dir: auto
