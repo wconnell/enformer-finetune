@@ -41,6 +41,8 @@ Next, download data and test finetuning. The module ships with testing data file
  ```bash
 # download
 bash download-data.sh
+# build dataset
+cd eft; python preprocess.py
 # modify options in `config.yaml`...
 # launch training
 python main.py fit --config config.yaml
@@ -51,6 +53,7 @@ python main.py fit --config config.yaml
 `export PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128`
 - requires batch_size >=2
 - must use full precision (32 bit)
+- use num_workers = 0
 
 <!-- 
 ### Citation   
