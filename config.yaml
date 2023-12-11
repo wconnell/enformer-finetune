@@ -2,10 +2,10 @@
 seed_everything: true
 trainer:
   accelerator: auto
-  strategy: auto #ddp_find_unused_parameters_true
-  devices: 1,
+  strategy: ddp_find_unused_parameters_true
+  devices: 0,1
   num_nodes: 1
-  precision: 32
+  precision: 16-mixed
   logger:
     class_path: lightning.pytorch.loggers.TensorBoardLogger
     init_args:
@@ -19,7 +19,7 @@ trainer:
       auto_insert_metric_name: False
       monitor: train/loss
       train_time_interval: null #0:60:0
-      every_n_epochs: null
+      every_n_epochs: 1
       enable_version_counter: True
   fast_dev_run: false
   max_epochs: 2
