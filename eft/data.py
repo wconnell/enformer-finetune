@@ -19,7 +19,10 @@ class CustomGenomeIntervalDataset(GenomeIntervalDataset):
         chr_name = self.chr_bed_to_fasta_map.get(chr_name, chr_name)
         target = ast.literal_eval(target)
         target = torch.tensor(target)
-        return self.fasta(chr_name, start, end, return_augs=self.return_augs), target
+
+        sequence = self.fasta(chr_name, start, end, return_augs=self.return_augs)
+
+        return sequence, target
 
 
 class EnformerTXDataModule(pl.LightningDataModule):
@@ -50,8 +53,8 @@ class EnformerTXDataModule(pl.LightningDataModule):
     def setup(self, stage: str):
         # Assign train/val datasets for use in dataloaders
         if stage == "fit":
-            train_file = 'train_dev.bed' if self.dev else 'train.bed'
-            val_file = 'val_dev.bed' if self.dev else 'val.bed'
+            train_file = 'train_dev.bed' if self.dev else 'train_90_10.bed'
+            val_file = 'val_dev.bed' if self.dev else 'val_90_10.bed'
             self.train = CustomGenomeIntervalDataset(
                 bed_file=self.data_dir / train_file,
                 fasta_file=self.fasta_file,
@@ -72,6 +75,22 @@ class EnformerTXDataModule(pl.LightningDataModule):
         if stage == "predict":
             raise NotImplementedError("Predict data not implemented")
 
+    @staticmethod
+    def custom_collate_fn(batch):
+        sequences = [item[0] for item in batch]
+        targets = [item[1] for item in batch]
+        fixed_len = 196_608
+        sequences = [
+            torch.nn.functional.pad(seq, (0, fixed_len - seq.shape[0])) if seq.shape[0] < fixed_len else seq[:fixed_len]
+            for seq in sequences]
+        sequences = torch.stack(sequences)
+
+        targets = [torch.nn.functional.pad(target, (0, fixed_len - target.shape[0])) if target.shape[0] < fixed_len
+                   else target[:fixed_len] for target in targets]
+        targets = torch.stack(targets)
+
+        return sequences, targets
+
     def train_dataloader(self):
         train_loader = DataLoader(
             self.train,
@@ -79,7 +98,8 @@ class EnformerTXDataModule(pl.LightningDataModule):
             shuffle=True,
             num_workers=self.num_workers,
             pin_memory=True,
-            drop_last=True
+            drop_last=True,
+            collate_fn=self.custom_collate_fn
         )
         return train_loader
 
@@ -90,7 +110,8 @@ class EnformerTXDataModule(pl.LightningDataModule):
             shuffle=False,
             num_workers=self.num_workers,
             pin_memory=True,
-            drop_last=True
+            drop_last=True,
+            collate_fn=self.custom_collate_fn
         )
         return val_loader
 

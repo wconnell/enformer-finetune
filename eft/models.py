@@ -9,7 +9,7 @@ import torch
 class EnformerTX(pl.LightningModule):
     def __init__(self, pretrained_state_dict=None, learning_rate=3e-4):
         super().__init__()
-        self.model = from_pretrained('EleutherAI/enformer-official-rough')
+        self.model = from_pretrained('EleutherAI/enformer-official-rough', use_checkpointing=True)
         self.model = HeadAdapterWrapper(
             enformer=self.model,
             num_tracks=1,
