@@ -79,9 +79,8 @@ def main() -> None:
         }
         promoters.append(row_data)
 
-    len_seq_values = len(promoters)
     frac_null = 0.1
-    len_null_values = int(len_seq_values / (1 - frac_null) - len_seq_values)
+    len_null_values = int(len(promoters) * frac_null / (1 - frac_null))
 
     chrom_sizes = get_chrom_sizes()
 
