@@ -13,8 +13,11 @@ def cli_main():
 
 
 if __name__ == "__main__":
+    if torch.cuda.is_available():
+        device = torch.cuda.current_device()
+        device_name = torch.cuda.get_device_name(device)
+        total_memory = torch.cuda.get_device_properties(device).total_memory
+        total_memory_gb = total_memory / (1024 ** 3)  # Convert bytes to GB
+        print(f"Device: {device_name}, Total VRAM: {total_memory_gb:.2f} GB")
     cli_main()
 
-    # TODO: We only have 40 GB VRAM. Figure out how many VRAM we need, and try to fix appropiately.
-    #  - Use DNAse seq (K562) instead of the RNA seq (GM12878).
-    #  - Parallelise: https://pytorch-lightning.readthedocs.io/en/1.1.8/multi_gpu.html#model-parallelism
