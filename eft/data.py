@@ -21,9 +21,8 @@ class CustomGenomeIntervalDataset(GenomeIntervalDataset):
         target = torch.tensor(target)
 
         sequence = self.fasta(chr_name, start, end, return_augs=self.return_augs)
-
-        print(f"Sequence dtype: {self.check_tensor_dtype(sequence)}")
-        print(f"Target dtype: {self.check_tensor_dtype(target)}")
+        # sequence = sequence.to(dtype=torch.float16)
+        target = target.to(dtype=torch.bfloat16)
 
         return sequence, target
 
