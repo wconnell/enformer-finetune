@@ -79,12 +79,13 @@ def main() -> None:
         }
         promoters.append(row_data)
 
-    len_seq_values = int(round(len(promoters) * 0.1))  # 90/10 split positive/negative samples
+    frac_null = 0.1
+    len_null_values = int(len(promoters) * frac_null / (1 - frac_null))
 
     chrom_sizes = get_chrom_sizes()
 
     controls = []
-    for i in tqdm(range(len_seq_values)):
+    for i in tqdm(range(len_null_values)):
         find_control = True
         while find_control:
             chrom, start, end, values = random_region(chrom_sizes, bw_file)

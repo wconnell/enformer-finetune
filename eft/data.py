@@ -71,8 +71,8 @@ class EnformerTXDataModule(pl.LightningDataModule):
     def setup(self, stage: str):
         # Assign train/val datasets for use in dataloaders
         if stage == "fit":
-            train_file = 'train_dev.bed' if self.dev else 'train_90_10.bed'
-            val_file = 'val_dev.bed' if self.dev else 'val_90_10.bed'
+            train_file = 'train_dev.bed' if self.dev else 'train.bed'
+            val_file = 'val_dev.bed' if self.dev else 'val.bed'
             self.train = CustomGenomeIntervalDataset(
                 bed_file=self.data_dir / train_file,
                 fasta_file=self.fasta_file,
