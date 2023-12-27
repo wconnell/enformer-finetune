@@ -4,7 +4,7 @@ from eft.models import EnformerTX
 from eft.data import EnformerTXDataModule
 
 
-torch.set_float32_matmul_precision('medium')
+torch.set_float32_matmul_precision('high')
 
 
 def cli_main():

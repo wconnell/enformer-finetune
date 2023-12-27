@@ -5,11 +5,11 @@ trainer:
   strategy: ddp_find_unused_parameters_true
   devices: 4
   num_nodes: 1
-  precision: 16-mixed
+  precision: 32
   logger:
     class_path: lightning.pytorch.loggers.TensorBoardLogger
     init_args:
-      save_dir: lightning_logs
+      save_dir: /data/scratch/bty174/enformer-finetune/lightning_logs
       name: 90-10
   callbacks:
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
@@ -61,7 +61,7 @@ model:
   learning_rate: 1e-5
 data:
   data_dir: data/sequences
-  batch_size: 4
+  batch_size: 2
   num_workers: 0
   dev: false
 ckpt_path: null

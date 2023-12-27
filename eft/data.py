@@ -22,7 +22,7 @@ class CustomGenomeIntervalDataset(GenomeIntervalDataset):
 
         sequence = self.fasta(chr_name, start, end, return_augs=self.return_augs)
         # sequence = sequence.to(dtype=torch.float16)
-        target = target.to(dtype=torch.bfloat16)
+        # target = target.to(dtype=torch.bfloat16)
 
         return sequence, target
 
