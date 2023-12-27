@@ -9,7 +9,7 @@ import torch
 class EnformerTX(pl.LightningModule):
     def __init__(self, pretrained_state_dict=None, learning_rate=3e-4):
         super().__init__()
-        self.model = from_pretrained('EleutherAI/enformer-official-rough', use_checkpointing=True)
+        self.model = from_pretrained('EleutherAI/enformer-official-rough')
         self.model = HeadAdapterWrapper(
             enformer=self.model,
             num_tracks=1,
@@ -29,18 +29,23 @@ class EnformerTX(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         seq, target = batch
         loss = self(seq, target)
-        self.log('train/loss', loss)
+        self.log('train/loss', loss, on_step=True, on_epoch=True)
         return loss
+
+    # def on_train_epoch_end(self):
+    #     outputs = self.trainer.fit_loop.epoch_loop.batch_loop.outputs
+    #     avg_loss = torch.stack([x for x in outputs]).mean()
+    #     self.log('train_loss_epoch', avg_loss)
 
     def validation_step(self, batch, batch_idx):
         seq, target = batch
         loss = self(seq, target)
-        self.log('val/loss', loss, sync_dist=True)
+        self.log('val/loss', loss, sync_dist=True, on_step=True, on_epoch=True)
 
     def test_step(self, batch, batch_idx):
         seq, target = batch
         loss = self(seq, target)
-        self.log('test/loss', loss, sync_dist=True)
+        self.log('test/loss', loss, sync_dist=True, on_step=True, on_epoch=True)
 
     def predict_step(self, batch, batch_idx, dataloader_idx=None):
         seq, _ = batch

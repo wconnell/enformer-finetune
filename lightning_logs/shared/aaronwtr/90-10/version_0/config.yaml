@@ -1,5 +1,5 @@
-# lightning.pytorch==2.1.0
-seed_everything: true
+# lightning.pytorch==2.1.1
+seed_everything: 697995365
 trainer:
   accelerator: auto
   strategy: ddp_find_unused_parameters_true
@@ -9,21 +9,37 @@ trainer:
   logger:
     class_path: lightning.pytorch.loggers.TensorBoardLogger
     init_args:
-      save_dir: /data/scratch/bty174/enformer-finetune/lightning_logs
+      save_dir: /data/scratch/bty174/lightning_logs
       name: 90-10
+      version: null
+      log_graph: false
+      default_hp_metric: true
+      prefix: ''
+      sub_dir: null
+      comment: ''
+      purge_step: null
+      max_queue: 10
+      flush_secs: 120
+      filename_suffix: ''
   callbacks:
-    - class_path: lightning.pytorch.callbacks.ModelCheckpoint
-      init_args:
-        save_top_k: -1
-        filename: epoch={epoch}-steps={steps}-train_loss={train/loss:.2f}
-        auto_insert_metric_name: false
-        monitor: train/loss
-        mode: min
-        train_time_interval: null #0:60:0
-        every_n_epochs: 1
-        enable_version_counter: true
-    - class_path: eft.data.MemoryLoggingCallback
-      init_args: {}
+  - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+    init_args:
+      dirpath: null
+      filename: epoch={epoch}-steps={steps}-train_loss={val/loss:.2f}
+      monitor: train/loss
+      verbose: false
+      save_last: null
+      save_top_k: -1
+      save_weights_only: false
+      mode: min
+      auto_insert_metric_name: false
+      every_n_train_steps: null
+      train_time_interval: null
+      every_n_epochs: 1
+      save_on_train_epoch_end: null
+      enable_version_counter: true
+  - class_path: eft.data.MemoryLoggingCallback
+    init_args: {}
   fast_dev_run: false
   max_epochs: 20
   min_epochs: null
@@ -58,10 +74,10 @@ trainer:
   default_root_dir: auto
 model:
   pretrained_state_dict: null
-  learning_rate: 1e-5
+  learning_rate: 1.0e-05
 data:
   data_dir: data/sequences
-  batch_size: 2
+  batch_size: 4
   num_workers: 0
   dev: false
 ckpt_path: null

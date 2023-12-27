@@ -123,9 +123,12 @@ venv.bak/
 .idea
 .vscode
 
-# seed project
-lightning_logs/
-MNIST
+# Ignore everything in lightning_logs
+lightning_logs/*
+
+# Except the shared subdirectory
+!lightning_logs/shared/
+
 .DS_Store
 !tests/data/
 
