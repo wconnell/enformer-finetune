@@ -7,7 +7,7 @@ import torch
 import ast
 import eft
 from sklearn.model_selection import train_test_split
-
+import gc
 
 class CustomGenomeIntervalDataset(GenomeIntervalDataset):
     def __len__(self):
