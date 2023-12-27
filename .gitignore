@@ -123,29 +123,13 @@ venv.bak/
 .idea
 .vscode
 
-# seed project
-MNIST
+# Ignore everything in lightning_logs
+lightning_logs/*
+
+# Except the shared subdirectory
+!lightning_logs/shared/
+
 .DS_Store
 !tests/data/
 
 eft/sequences/
-
-lightning_logs/90-10/version_0/
-
-lightning_logs/90-10/version_00/
-
-lightning_logs/90-10/version_1/
-
-lightning_logs/90-10/version_2/
-
-lightning_logs/90-10/version_3/
-
-lightning_logs/90-10/version_4/
-
-lightning_logs/90-10/version_5/
-
-lightning_logs/90-10/version_6/
-
-lightning_logs/90-10/version_7/
-
-lightning_logs/90-10/version_8
