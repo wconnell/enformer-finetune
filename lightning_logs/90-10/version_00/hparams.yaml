@@ -1,8 +1,0 @@
-pretrained_state_dict: null
-learning_rate: 1.0e-05
-data_dir: !!python/object/apply:pathlib.PosixPath
-- data
-- sequences
-batch_size: 2
-num_workers: 0
-dev: false
