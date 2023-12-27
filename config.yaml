@@ -15,7 +15,7 @@ trainer:
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
         save_top_k: -1
-        filename: epoch={epoch}-steps={steps}-train_loss={val/loss:.2f}
+        filename: epoch={epoch}-steps={steps}-train_loss={train/loss:.2f}
         auto_insert_metric_name: false
         monitor: train/loss
         mode: min
