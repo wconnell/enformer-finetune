@@ -32,10 +32,13 @@ class EnformerTX(pl.LightningModule):
         self.log('train/loss', loss, on_step=True, on_epoch=True)
         return loss
 
-    # def on_train_epoch_end(self):
-    #     outputs = self.trainer.fit_loop.epoch_loop.batch_loop.outputs
-    #     avg_loss = torch.stack([x for x in outputs]).mean()
-    #     self.log('train_loss_epoch', avg_loss)
+    def on_train_epoch_end(self, outputs):
+        #     outputs = self.trainer.fit_loop.epoch_loop.batch_loop.outputs
+        #     avg_loss = torch.stack([x for x in outputs]).mean()
+        #     self.log('train_loss_epoch', avg_loss)
+        print(outputs)
+        # TODO: make a call to plotting utilities to plot predicted vs true track after each epoch
+        return 0
 
     def validation_step(self, batch, batch_idx):
         seq, target = batch
