@@ -3,6 +3,7 @@ import lightning.pytorch as pl
 from enformer_pytorch import from_pretrained
 from enformer_pytorch.finetune import HeadAdapterWrapper
 from enformer_pytorch import seq_indices_to_one_hot
+from eft.data import CustomGenomeIntervalDataset
 import torch
 
 
@@ -29,15 +30,26 @@ class EnformerTX(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         seq, target = batch
         loss = self(seq, target)
-        self.log('train/loss', loss, on_step=True, on_epoch=True)
+        self.log('train/loss', loss, on_step=True, on_epoch=True, sync_dist=True)
         return loss
 
-    def on_train_epoch_end(self, outputs):
-        #     outputs = self.trainer.fit_loop.epoch_loop.batch_loop.outputs
-        #     avg_loss = torch.stack([x for x in outputs]).mean()
-        #     self.log('train_loss_epoch', avg_loss)
-        print(outputs)
-        # TODO: make a call to plotting utilities to plot predicted vs true track after each epoch
+    def on_train_epoch_end(self):
+        dataset = CustomGenomeIntervalDataset(
+            bed_file='data/sequences/train_90_10.bed',
+            fasta_file='data/hg38.fa',
+            context_length=196_608
+        )
+
+        # fetch a random seq and target from the dataset
+        seq, target = dataset[0]
+        seq = seq.to(self.device)
+
+        # get the model's prediction
+        pred = self(seq, None)
+        print(pred)
+
+        # TODO: plot the results
+
         return 0
 
     def validation_step(self, batch, batch_idx):
