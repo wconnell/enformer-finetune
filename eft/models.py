@@ -40,13 +40,14 @@ class EnformerTX(pl.LightningModule):
             context_length=196_608
         )
 
-        # fetch a random seq and target from the dataset
+        # fetch a random seq and target from the training dataset
         seq, target = dataset[0]
         seq = seq.to(self.device)
 
         # get the model's prediction
-        pred = self(seq, None)
+        pred = self(seq, None, return_embeddings=True)
         print(pred)
+        print(pred.shape)
 
         # TODO: plot the results
 
