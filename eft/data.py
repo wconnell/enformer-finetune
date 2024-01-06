@@ -19,12 +19,8 @@ class CustomGenomeIntervalDataset(GenomeIntervalDataset):
         chr_name = self.chr_bed_to_fasta_map.get(chr_name, chr_name)
         target = ast.literal_eval(target)
         target = torch.tensor(target)
-
         sequence = self.fasta(chr_name, start, end, return_augs=self.return_augs)
-        # sequence = sequence.to(dtype=torch.float16)
-        # target = target.to(dtype=torch.bfloat16)
-
-        return sequence, target
+        return sequence, target.unsqueeze(-1)
 
     @staticmethod
     def check_tensor_dtype(tensor):
@@ -117,7 +113,7 @@ class EnformerTXDataModule(pl.LightningDataModule):
             num_workers=self.num_workers,
             pin_memory=True,
             drop_last=True,
-            collate_fn=self.custom_collate_fn
+            collate_fn=None
         )
         return train_loader
 
@@ -129,7 +125,7 @@ class EnformerTXDataModule(pl.LightningDataModule):
             num_workers=self.num_workers,
             pin_memory=True,
             drop_last=True,
-            collate_fn=self.custom_collate_fn
+            collate_fn=None
         )
         return val_loader
 
