@@ -33,12 +33,13 @@ class CustomGenomeIntervalDataset(GenomeIntervalDataset):
 
 
 class EnformerTXDataModule(pl.LightningDataModule):
-    def __init__(self, data_dir: Path = None, batch_size: int = 32, num_workers: int = 4, dev = False):
+    def __init__(self, data_dir: Path = None, batch_size: int = 32, num_workers: int = 4, dev = False, predict_data_path = None):
         super().__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.dev = dev
+        self.predict_data_path = predict_data_path
         self.save_hyperparameters()
         self.fasta_file = str(Path(eft.__file__).parents[1].joinpath('data/hg38.fa'))
 
@@ -87,23 +88,12 @@ class EnformerTXDataModule(pl.LightningDataModule):
             raise NotImplementedError("Test data not implemented")
 
         if stage == "predict":
-            raise NotImplementedError("Predict data not implemented")
-
-    @staticmethod
-    def custom_collate_fn(batch):
-        sequences = [item[0] for item in batch]
-        targets = [item[1] for item in batch]
-        fixed_len = 196_608
-        sequences = [
-            torch.nn.functional.pad(seq, (0, fixed_len - seq.shape[0])) if seq.shape[0] < fixed_len else seq[:fixed_len]
-            for seq in sequences]
-        sequences = torch.stack(sequences)
-
-        targets = [torch.nn.functional.pad(target, (0, fixed_len - target.shape[0])) if target.shape[0] < fixed_len
-                   else target[:fixed_len] for target in targets]
-        targets = torch.stack(targets)
-
-        return sequences, targets
+            self.predict = CustomGenomeIntervalDataset(
+                bed_file=self.predict_data_path,
+                fasta_file=self.fasta_file,
+                return_seq_indices=True,
+                context_length=196_608,
+            )
 
     def train_dataloader(self):
         train_loader = DataLoader(
@@ -133,8 +123,16 @@ class EnformerTXDataModule(pl.LightningDataModule):
         raise NotImplementedError("Test data not implemented")
 
     def predict_dataloader(self):
-        raise NotImplementedError("Predict data not implemented")
-
+        pred_loader = DataLoader(
+            self.predict,
+            batch_size=self.batch_size,
+            shuffle=False,
+            num_workers=self.num_workers,
+            pin_memory=True,
+            drop_last=True,
+            collate_fn=None
+        )
+        return pred_loader
 
 class MemoryLoggingCallback(pl.Callback):
     @staticmethod
