@@ -9,6 +9,22 @@ import eft
 from sklearn.model_selection import train_test_split
 import gc
 
+def convert_chr_to_int(x):
+    if x == 'chrX':
+        return 23
+    elif x == 'chrY':
+        return 24
+    else:
+        return int(x[3:])
+
+def convert_int_to_chr(x):
+    if x == 23:
+        return 'chrX'
+    elif x == 24:
+        return 'chrY'
+    else:
+        return f'chr{x}'
+
 class CustomGenomeIntervalDataset(GenomeIntervalDataset):
     def __len__(self):
         return len(self.df) - 1
@@ -18,9 +34,11 @@ class CustomGenomeIntervalDataset(GenomeIntervalDataset):
         chr_name, start, end, seq_type, target = (interval[0], interval[1], interval[2], interval[3], interval[4])
         chr_name = self.chr_bed_to_fasta_map.get(chr_name, chr_name)
         target = ast.literal_eval(target)
-        target = torch.tensor(target)
+        target = torch.tensor(target).unsqueeze(-1)
         sequence = self.fasta(chr_name, start, end, return_augs=self.return_augs)
-        return sequence, target.unsqueeze(-1)
+        chr_name = convert_chr_to_int(chr_name)
+        loc = torch.tensor([chr_name, start, end])
+        return sequence, target, loc
 
     @staticmethod
     def check_tensor_dtype(tensor):
