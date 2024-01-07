@@ -1,11 +1,11 @@
 # lightning.pytorch==2.1.0
 seed_everything: true
 trainer:
-  accelerator: auto
-  strategy: auto
-  devices: 1,
+  accelerator: gpu
+  strategy: ddp_find_unused_parameters_true
+  devices: 3,
   num_nodes: 1
-  precision: 16
+  precision: 32
   logger:
     class_path: lightning.pytorch.loggers.TensorBoardLogger
     init_args:
@@ -69,5 +69,5 @@ data:
   batch_size: 2
   num_workers: 0
   dev: true
-  predict_data_path: null #data/sequences/val_dev.bed
+  predict_data_path: data/sequences/val_dev.bed
 ckpt_path: null #/srv/home/wconnell/github/enformer-finetune/lightning_logs/dev/version_5/checkpoints/epoch=57-step=232.ckpt
