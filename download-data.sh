@@ -4,9 +4,9 @@
 DATA_DIR="data"
 URL1="https://www.dropbox.com/s/n549ucfqu0u9tu6/master_random_frezzed_regions_train_test_validation_generated_genome_all_dataset.txt?dl=1"
 FILE1="${DATA_DIR}/master_random_frezzed_regions_train_test_validation_generated_genome_all_dataset.txt"
-# original testing data
-URL2="https://www.encodeproject.org/files/ENCFF470BSF/@@download/ENCFF470BSF.bigWig"
-FILE2="${DATA_DIR}/ENCFF470BSF.bw"
+# # original testing data
+# URL2="https://www.encodeproject.org/files/ENCFF470BSF/@@download/ENCFF470BSF.bigWig"
+# FILE2="${DATA_DIR}/ENCFF470BSF.bw"
 # new data
 URL3="https://www.encodeproject.org/files/ENCFF972GVB/@@download/ENCFF972GVB.bigWig"
 FILE3="${DATA_DIR}/ENCFF972GVB.bw"

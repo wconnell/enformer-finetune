@@ -25,9 +25,9 @@ def avg_bin(array, n_bins):
     return [np.mean(a) for a in splitted]
 
 
-def get_chrom_sizes(genome="hg38") -> dict:
+def get_chrom_sizes(base_path) -> dict:
     chrom_sizes = {}
-    with open(f"../data/{genome}.chrom.sizes", "r") as f:
+    with open(base_path.joinpath("data/hg38.chrom.sizes"), "r") as f:
         for line in f:
             fields = line.split()
             chrom, size = fields[0], int(fields[1])
@@ -45,22 +45,21 @@ def random_region(chrom_sizes, bw_file):
 
 
 def main() -> None:
-    outdir = Path("../data/sequences")
+    base_path = Path(__file__).parents[1] # enformer-finetune/
+    outdir = base_path.joinpath("data/sequences")
     if not outdir.exists():
         outdir.mkdir(parents=True, exist_ok=True)
-
     all_data = pd.read_csv(
-        "../data/master_random_frezzed_regions_train_test_validation_generated_genome_all_dataset.txt",
+        base_path.joinpath("data/master_random_frezzed_regions_train_test_validation_generated_genome_all_dataset.txt"),
         sep="\t",
     )
 
-    bw_file = pyBigWig.open("../data/ENCFF972GVB.bw")
+    bw_file = pyBigWig.open(str(base_path.joinpath("data/ENCFF972GVB.bw")))
 
     df = all_data[all_data['TAG'] == "PROMOTERS"]
     df['chrom'] = df['chrom'].astype(str)
     df[['start', 'end']] = df[['start', 'end']].astype(int)
 
-    # df = df.sample(n=50, random_state=42)
     total = len(df)
 
     promoters = []
@@ -82,7 +81,7 @@ def main() -> None:
     frac_null = 0.1
     len_null_values = int(len(promoters) * frac_null / (1 - frac_null))
 
-    chrom_sizes = get_chrom_sizes()
+    chrom_sizes = get_chrom_sizes(base_path)
 
     controls = []
     for i in tqdm(range(len_null_values)):
@@ -111,42 +110,8 @@ def main() -> None:
     controls['seq_type'] = 'random'
     sequences = pd.concat((promoters, controls)).sample(frac=1)
 
-    sequences[['chrom', 'start', 'end', 'seq_type', 'values']].to_csv(f"{outdir}/promoter_dnase.bed", sep="\t",
+    sequences[['chrom', 'start', 'end', 'seq_type', 'values']].to_csv(outdir.joinpath("promoter_dnase.bed"), sep="\t",
                                                                       header=False, index=False)
-
-
-def balance_dataset(dataset, label_column, positive_fraction):
-    """
-    Balances the dataset based on the specified fraction of positive cases.
-
-    Parameters:
-    - dataset (pd.DataFrame): The dataset to be balanced.
-    - label_column (int or str): The column in the dataset containing the class labels.
-    - positive_fraction (float): The desired fraction of positive cases in the dataset.
-
-    Returns:
-    - pd.DataFrame: A balanced dataset.
-
-    Example:
-        balanced_train = balance_dataset(train, 3, 0.9)
-        balanced_val = balance_dataset(val, 3, 0.9)
-    """
-
-    # Count the number of positive instances
-    pos_count = dataset[label_column].value_counts().loc['promoter']
-
-    # Calculate the number of negative instances needed for the desired balance
-    total_count = pos_count / positive_fraction
-    neg_count = int(total_count - pos_count)
-
-    # Extract positive and negative samples
-    positives = dataset[dataset[label_column] == 'promoter']
-    negatives = dataset[dataset[label_column] != 'promoter'].sample(n=neg_count)
-
-    # Concatenate and shuffle the dataset
-    balanced_dataset = pd.concat([positives, negatives]).sample(frac=1).reset_index(drop=True)
-
-    return balanced_dataset
 
 
 if __name__ == "__main__":

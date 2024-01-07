@@ -9,6 +9,22 @@ import eft
 from sklearn.model_selection import train_test_split
 import gc
 
+def convert_chr_to_int(x):
+    if x == 'chrX':
+        return 23
+    elif x == 'chrY':
+        return 24
+    else:
+        return int(x[3:])
+
+def convert_int_to_chr(x):
+    if x == 23:
+        return 'chrX'
+    elif x == 24:
+        return 'chrY'
+    else:
+        return f'chr{x}'
+
 class CustomGenomeIntervalDataset(GenomeIntervalDataset):
     def __len__(self):
         return len(self.df) - 1
@@ -18,13 +34,11 @@ class CustomGenomeIntervalDataset(GenomeIntervalDataset):
         chr_name, start, end, seq_type, target = (interval[0], interval[1], interval[2], interval[3], interval[4])
         chr_name = self.chr_bed_to_fasta_map.get(chr_name, chr_name)
         target = ast.literal_eval(target)
-        target = torch.tensor(target)
-
+        target = torch.tensor(target).unsqueeze(-1)
         sequence = self.fasta(chr_name, start, end, return_augs=self.return_augs)
-        # sequence = sequence.to(dtype=torch.float16)
-        # target = target.to(dtype=torch.bfloat16)
-
-        return sequence, target
+        chr_name = convert_chr_to_int(chr_name)
+        loc = torch.tensor([chr_name, start, end])
+        return sequence, target, loc
 
     @staticmethod
     def check_tensor_dtype(tensor):
@@ -37,12 +51,13 @@ class CustomGenomeIntervalDataset(GenomeIntervalDataset):
 
 
 class EnformerTXDataModule(pl.LightningDataModule):
-    def __init__(self, data_dir: Path = None, batch_size: int = 32, num_workers: int = 4, dev = False):
+    def __init__(self, data_dir: Path = None, batch_size: int = 32, num_workers: int = 4, dev = False, predict_data_path = None):
         super().__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.dev = dev
+        self.predict_data_path = predict_data_path
         self.save_hyperparameters()
         self.fasta_file = str(Path(eft.__file__).parents[1].joinpath('data/hg38.fa'))
 
@@ -91,23 +106,12 @@ class EnformerTXDataModule(pl.LightningDataModule):
             raise NotImplementedError("Test data not implemented")
 
         if stage == "predict":
-            raise NotImplementedError("Predict data not implemented")
-
-    @staticmethod
-    def custom_collate_fn(batch):
-        sequences = [item[0] for item in batch]
-        targets = [item[1] for item in batch]
-        fixed_len = 196_608
-        sequences = [
-            torch.nn.functional.pad(seq, (0, fixed_len - seq.shape[0])) if seq.shape[0] < fixed_len else seq[:fixed_len]
-            for seq in sequences]
-        sequences = torch.stack(sequences)
-
-        targets = [torch.nn.functional.pad(target, (0, fixed_len - target.shape[0])) if target.shape[0] < fixed_len
-                   else target[:fixed_len] for target in targets]
-        targets = torch.stack(targets)
-
-        return sequences, targets
+            self.predict = CustomGenomeIntervalDataset(
+                bed_file=self.predict_data_path,
+                fasta_file=self.fasta_file,
+                return_seq_indices=True,
+                context_length=196_608,
+            )
 
     def train_dataloader(self):
         train_loader = DataLoader(
@@ -117,7 +121,7 @@ class EnformerTXDataModule(pl.LightningDataModule):
             num_workers=self.num_workers,
             pin_memory=True,
             drop_last=True,
-            collate_fn=self.custom_collate_fn
+            collate_fn=None
         )
         return train_loader
 
@@ -129,7 +133,7 @@ class EnformerTXDataModule(pl.LightningDataModule):
             num_workers=self.num_workers,
             pin_memory=True,
             drop_last=True,
-            collate_fn=self.custom_collate_fn
+            collate_fn=None
         )
         return val_loader
 
@@ -137,8 +141,16 @@ class EnformerTXDataModule(pl.LightningDataModule):
         raise NotImplementedError("Test data not implemented")
 
     def predict_dataloader(self):
-        raise NotImplementedError("Predict data not implemented")
-
+        pred_loader = DataLoader(
+            self.predict,
+            batch_size=self.batch_size,
+            shuffle=False,
+            num_workers=self.num_workers,
+            pin_memory=True,
+            drop_last=True,
+            collate_fn=None
+        )
+        return pred_loader
 
 class MemoryLoggingCallback(pl.Callback):
     @staticmethod
