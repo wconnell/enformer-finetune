@@ -56,7 +56,7 @@ class EnformerTX(pl.LightningModule):
             self.validation_step_locs = self.validation_step_locs.cpu().numpy()
 
             pdf_below_path = Path(self.logger.log_dir).joinpath(f'epoch={self.current_epoch}_rho-less-0.3.pdf')
-            pdf_above_path = Path(self.logger.log_dir).joinpath(f'epoch={self.current_epoch}_rho-gr-0.3.pdf')
+            pdf_above_path = Path(self.logger.log_dir).joinpath(f'epoch={self.current_epoch}_rho-gre-0.3.pdf')
 
             with PdfPages(pdf_below_path) as pdf_below, PdfPages(pdf_above_path) as pdf_above:
                 for i in range(len(self.validation_step_preds)):
@@ -69,7 +69,7 @@ class EnformerTX(pl.LightningModule):
 
                     if rho < 0.3:
                         save_plot_to_pdf(pdf_below, true, pred, loc, (rho, pval))
-                    elif rho > 0.3:
+                    else:
                         save_plot_to_pdf(pdf_above, true, pred, loc, (rho, pval))
         # reset lists
         self.validation_step_preds = []
