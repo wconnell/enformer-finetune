@@ -2,7 +2,7 @@ import lightning.pytorch as pl
 from enformer_pytorch import from_pretrained
 from enformer_pytorch.finetune import HeadAdapterWrapper
 import torch
-from eft.viz import fancy_plot_tracks, save_plot_to_pdf
+from eft.viz import save_plot_to_pdf
 from scipy.stats import pearsonr
 from matplotlib.backends.backend_pdf import PdfPages
 from eft.data import convert_int_to_chr
@@ -26,10 +26,6 @@ class EnformerTX(pl.LightningModule):
         self.save_hyperparameters()
 
     def forward(self, sequence, target):
-        # if self.device.type != 'cpu':
-        #     sequence = sequence.to(dtype=torch.long)
-        #     target = target.to(dtype=torch.float32)
-        #     sequence = seq_indices_to_one_hot(sequence)
         return self.model(sequence, target=target)
 
     def training_step(self, batch, batch_idx):
@@ -37,11 +33,6 @@ class EnformerTX(pl.LightningModule):
         loss = self(seq, target)
         self.log('train/loss', loss, on_step=True, on_epoch=True)
         return loss
-
-    # def on_train_epoch_end(self):
-    #     outputs = self.trainer.fit_loop.epoch_loop.batch_loop.outputs
-    #     avg_loss = torch.stack([x for x in outputs]).mean()
-    #     self.log('train_loss_epoch', avg_loss)
 
     def validation_step(self, batch, batch_idx):
         seq, target, loc = batch
