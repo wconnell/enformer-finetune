@@ -7,6 +7,7 @@ from scipy.stats import pearsonr
 from matplotlib.backends.backend_pdf import PdfPages
 from eft.data import convert_int_to_chr
 from pathlib import Path
+from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR, SequentialLR
 
 class EnformerTX(pl.LightningModule):
     def __init__(self, pretrained_state_dict=None, learning_rate=3e-4, val_viz_interval=None):
@@ -31,23 +32,25 @@ class EnformerTX(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         seq, target, loc = batch
         loss = self(seq, target)
+        loss = torch.nan_to_num(loss)
         self.log('train/loss', loss, on_step=True, on_epoch=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
         seq, target, loc = batch
         loss = self(seq, target)
+        loss = torch.nan_to_num(loss)
         self.log('val/loss', loss, sync_dist=True, on_step=True, on_epoch=True)
         if self.current_epoch % self.val_viz_interval == 0:
             n_samples = len(self.validation_step_preds) * len(seq) # Number of samples in each batch
-            if n_samples < 100:
+            if n_samples < 100 and loss != 0:
                 pred = self(seq, None)
                 self.validation_step_preds.append(pred)
                 self.validation_step_targets.append(target)
                 self.validation_step_locs.append(loc)
 
     def on_validation_epoch_end(self) -> None:
-        if self.current_epoch % self.val_viz_interval == 0:
+        if (self.current_epoch % self.val_viz_interval == 0) and (len(self.validation_step_preds) > 0):
             self.validation_step_preds = torch.concat(self.validation_step_preds).squeeze()
             self.validation_step_targets = torch.concat(self.validation_step_targets).squeeze()
             self.validation_step_locs = torch.concat(self.validation_step_locs)
@@ -67,9 +70,12 @@ class EnformerTX(pl.LightningModule):
 
                     rho, pval = pearsonr(pred, true)
 
+                    if rho == float('nan'):
+                        continue
+
                     if rho < 0.3:
                         save_plot_to_pdf(pdf_below, true, pred, loc, (rho, pval))
-                    else:
+                    elif rho >= 0.3:
                         save_plot_to_pdf(pdf_above, true, pred, loc, (rho, pval))
         # reset lists
         self.validation_step_preds = []
@@ -79,6 +85,7 @@ class EnformerTX(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         seq, target, loc = batch
         loss = self(seq, target)
+        loss = torch.nan_to_num(loss)
         self.log('test/loss', loss, sync_dist=True, on_step=True, on_epoch=True)
 
     def predict_step(self, batch, batch_idx, dataloader_idx=None):
@@ -86,4 +93,24 @@ class EnformerTX(pl.LightningModule):
         return self(seq, None)
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=self.hparams.learning_rate)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.learning_rate)
+
+        # Get max_epochs from the trainer
+        if self.trainer:
+            max_epochs = self.trainer.max_epochs
+        else:
+            max_epochs = 50  # Default value if the trainer is not yet attached
+
+        # Configure warmup and annealing
+        warmup_epochs = 5
+        warmup_scheduler = LambdaLR(optimizer, lr_lambda=lambda epoch: min(1., epoch / warmup_epochs))
+        anneal_scheduler = CosineAnnealingLR(optimizer, T_max=max_epochs - warmup_epochs, eta_min=0)
+
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": SequentialLR(optimizer, schedulers=[warmup_scheduler, anneal_scheduler], milestones=[warmup_epochs]),
+                "interval": "epoch",
+                "frequency": 1,
+            },
+        }
